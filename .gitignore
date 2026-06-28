@@ -1,0 +1,31 @@
+# Mac system files
+
+.DS_Store
+
+# Python
+
+__pycache__/
+
+*.pyc
+
+.venv/
+
+venv/
+
+# Environment variables / secrets
+
+.env
+
+*.pem
+
+*.key
+
+# Large or temporary files
+
+*.zip
+
+*.tmp
+
+# Tableau/Power BI temp files
+
+*.twbx.tmp

@@ -1,0 +1,55 @@
+/* InventoryIQ Design System */
+
+:root {
+    --primary: #2563eb;
+    --secondary: #0f172a;
+    --background: #f8fafc;
+    --card: #ffffff;
+    --text: #1e293b;
+    --muted: #64748b;
+    --border: #e2e8f0;
+    --success: #16a34a;
+    --warning: #f59e0b;
+    --danger: #dc2626;
+}
+
+.block-container {
+    padding-top: 2rem;
+    padding-bottom: 2rem;
+}
+
+h1, h2, h3 {
+    color: var(--secondary);
+}
+
+[data-testid="stSidebar"] {
+    background-color: #f1f5f9;
+}
+
+.metric-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
+}
+
+.metric-label {
+    font-size: 14px;
+    color: var(--muted);
+    margin-bottom: 6px;
+}
+
+.metric-value {
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--secondary);
+}
+
+.section-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 24px;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
+}

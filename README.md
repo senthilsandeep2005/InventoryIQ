@@ -3,7 +3,7 @@
 InventoryIQ is a cloud-based inventory optimization analytics platform designed for a single distribution center. My project uses inventory, supplier, purchase order, sales order, and transaction data from a Kaggle logistics warehouse dataset to identify stockout risk, generate reorder recommendations, analyze supplier performance, and support better inventory decisions.
 
 ## Project Goals
-
+ 
 - Analyze SKU-level inventory performance
 - Identify high-risk stockout items
 - Calculate reorder recommendations

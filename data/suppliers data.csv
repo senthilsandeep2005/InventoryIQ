@@ -1,16 +1,16 @@
 supplier_id,supplier_name,supplier_region,reliability_score,on_time_delivery_rate,supplier_risk_level
-1,NorthStar Industrial,Texas,0.94,0.883,High
-2,Prime Logistics,California,0.889,0.906,High
-3,Vertex Supply,Illinois,0.953,0.958,Low
-4,Apex Components,Georgia,0.975,0.89,High
-5,Blue Ridge Manufacturing,Florida,0.909,0.883,High
-6,Summit Distribution,Ohio,0.881,0.938,High
-7,Pioneer Wholesale,Arizona,0.854,0.903,High
-8,Precision Parts Co,North Carolina,0.941,0.943,Medium
-9,Atlas Industrial,Pennsylvania,0.881,0.948,High
-10,Evergreen Supply,Washington,0.963,0.881,High
-11,Titan Materials,Colorado,0.963,0.96,Low
-12,Metro Procurement,Tennessee,0.898,0.898,High
-13,Horizon Industrial,Michigan,0.984,0.919,Medium
-14,Falcon Manufacturing,Virginia,0.863,0.891,High
-15,Elite Supply Group,Indiana,0.969,0.949,Medium
+SUP001,NorthStar Industrial,Texas,0.94,0.883,High
+SUP002,Prime Logistics,California,0.889,0.906,High
+SUP003,Vertex Supply,Illinois,0.953,0.958,Low
+SUP004,Apex Components,Georgia,0.975,0.89,High
+SUP005,Blue Ridge Manufacturing,Florida,0.909,0.883,High
+SUP006,Summit Distribution,Ohio,0.881,0.938,High
+SUP007,Pioneer Wholesale,Arizona,0.854,0.903,High
+SUP008,Precision Parts Co,North Carolina,0.941,0.943,Medium
+SUP009,Atlas Industrial,Pennsylvania,0.881,0.948,High
+SUP010,Evergreen Supply,Washington,0.963,0.881,High
+SUP011,Titan Materials,Colorado,0.963,0.96,Low
+SUP012,Metro Procurement,Tennessee,0.898,0.898,High
+SUP013,Horizon Industrial,Michigan,0.984,0.919,Medium
+SUP014,Falcon Manufacturing,Virginia,0.863,0.891,High
+SUP015,Elite Supply Group,Indiana,0.969,0.949,Medium

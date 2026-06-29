@@ -11,7 +11,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 DATA_FOLDER = PROJECT_ROOT / "data"
 
 INVENTORY_FILE = DATA_FOLDER / "inventory_data_cleaning.csv"
-SUPPLIERS_FILE = DATA_FOLDER / "suppliers data.csv"
+SUPPLIERS_FILE = DATA_FOLDER / "suppliers_data.csv"
 OUTPUT_FILE = DATA_FOLDER / "purchase_orders.csv"
 
 # Load cleaned inventory data and suppliers data

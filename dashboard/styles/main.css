@@ -53,3 +53,38 @@ h1, h2, h3 {
     padding: 24px;
     box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
 }
+/* Hide Streamlit top-right toolbar / deploy / menu controls */
+[data-testid="stToolbar"] {
+    visibility: hidden;
+    height: 0%;
+    position: fixed;
+}
+
+[data-testid="stDecoration"] {
+    display: none;
+}
+
+#MainMenu {
+    visibility: hidden;
+}
+
+header {
+    visibility: hidden;
+}
+
+/* Fix sidebar text visibility on mobile */
+[data-testid="stSidebar"] {
+    background-color: #eef3f9;
+}
+
+[data-testid="stSidebar"] * {
+    color: #1f2937 !important;
+}
+
+[data-testid="stSidebar"] a {
+    color: #1f2937 !important;
+}
+
+[data-testid="stSidebar"] button {
+    color: #1f2937 !important;
+}

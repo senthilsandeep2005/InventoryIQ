@@ -1,5 +1,5 @@
-#Purpose: Calculates total inventory value and SKU count by category.
-#SELECT
+--Purpose: Calculates total inventory value and SKU count by category.
+SELECT
     category,
     CAST(ROUND(SUM(inventory_value), 2) AS DECIMAL(18,2)) AS total_inventory_value,
     CAST(ROUND(AVG(inventory_value), 2) AS DECIMAL(18,2)) AS avg_inventory_value,

@@ -1,4 +1,4 @@
-#Aggregates top level executive KPIs for the dashboard.
+--Aggregates top level executive KPIs for the dashboard.
 
 SELECT
     COUNT(item_id) AS total_skus,

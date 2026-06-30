@@ -17,6 +17,8 @@ st.set_page_config(
 )
 
 load_css()
+st.markdown("<div style='height: 24px;'></div>", unsafe_allow_html=True)
+
 
 inventory, suppliers, sales, transactions, purchase_orders = load_data()
 

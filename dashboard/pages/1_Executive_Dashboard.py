@@ -6,6 +6,7 @@ sys.path.append(str(Path(__file__).resolve().parents[1]))
 import pandas as pd
 import streamlit as st
 import plotly.express as px
+from utils.athena_client import run_sql_file
 
 from utils.style_loader import load_css
 from utils.data_loader import load_data
@@ -18,6 +19,7 @@ st.set_page_config(
 )
 
 load_css()
+st.markdown("<div style='height: 24px;'></div>", unsafe_allow_html=True)
 
 inventory, suppliers, sales, transactions, purchase_orders = load_data()
 
@@ -59,11 +61,13 @@ st.title("📦 InventoryIQ")
 st.caption("Intelligent Inventory Optimization Platform | Python + AWS S3 + Athena + Streamlit")
 
 # KPI calculations
-total_skus = inventory["item_id"].nunique()
-total_inventory_value = inventory["inventory_value"].sum()
-avg_health_score = inventory["kpi_score"].mean()
-high_risk_skus = (inventory["stockout_risk"] == "High").sum()
-total_reorder_qty = inventory["reorder_quantity"].sum()
+kpi_df = run_sql_file("executive_kpis_athena.sql")
+
+total_skus = int(kpi_df.loc[0, "total_skus"])
+total_inventory_value = float(kpi_df.loc[0, "total_inventory_value"])
+avg_health_score = float(kpi_df.loc[0, "avg_inventory_health_score"])
+high_risk_skus = int(kpi_df.loc[0, "high_risk_skus"])
+total_reorder_qty = float(kpi_df.loc[0, "total_reorder_quantity"])
 
 kpi1, kpi2, kpi3, kpi4, kpi5 = st.columns(5)
 

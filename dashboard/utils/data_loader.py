@@ -28,27 +28,13 @@ def load_local_data():
 @st.cache_data(ttl=3600)
 def load_athena_data():
     from utils.athena_client import run_query
-    status = st.status(
-        "Loading InventoryIQ cloud data from Amazon Athena...",
-        expanded=True
-    )
-
-    status.write("Connecting to AWS S3 data lake...")
-    status.write("Running Athena queries...")
-    status.write("Processing inventory, sales, supplier, and risk analytics...")
-
+    
     inventory = run_query("SELECT * FROM inventory_data_cleaning")
     suppliers = run_query("SELECT * FROM suppliers_data")
     sales = run_query("SELECT * FROM sales_orders")
     transactions = run_query("SELECT * FROM inventory_transactions")
     purchase_orders = run_query("SELECT * FROM purchase_orders")
-
-    status.update(
-        label="InventoryIQ cloud data loaded successfully.",
-        state="complete",
-        expanded=False
-    )
-   
+    
     # Make Athena transaction columns compatible with dashboard code
     if "event_type" in transactions.columns:
         transactions["transaction_type"] = transactions["event_type"]

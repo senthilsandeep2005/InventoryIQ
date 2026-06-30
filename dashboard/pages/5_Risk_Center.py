@@ -19,8 +19,24 @@ st.set_page_config(
 load_css()
 st.markdown("<div style='height: 24px;'></div>", unsafe_allow_html=True)
 
-
 inventory, suppliers, sales, transactions, purchase_orders = load_data()
+
+numeric_inventory_columns = [
+    "stock_level",
+    "reorder_point",
+    "reorder_quantity",
+    "days_of_inventory",
+]
+
+for col in numeric_inventory_columns:
+    if col in inventory.columns:
+        inventory[col] = inventory[col].astype(float)
+
+for col in ["slow_moving_flag", "excess_inventory_flag"]:
+    if col in inventory.columns:
+        inventory[col] = inventory[col].astype(str).str.upper().map(
+            {"YES": 1, "NO": 0, "1": 1, "0": 0}
+        ).fillna(0).astype(int)
 
 risk_data = inventory.merge(
     suppliers,

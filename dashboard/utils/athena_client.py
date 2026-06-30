@@ -1,8 +1,9 @@
 import time
 from pathlib import Path
-
 import boto3
 import pandas as pd
+import streamlit as st
+
 
 
 DATABASE = "inventoryiq"
@@ -30,27 +31,48 @@ def run_query(query: str) -> pd.DataFrame:
         result = athena.get_query_execution(QueryExecutionId=query_execution_id)
         state = result["QueryExecution"]["Status"]["State"]
 
-        if state == "SUCCEEDED":
+        if state in ["SUCCEEDED", "FAILED", "CANCELLED"]:
             break
-
-        if state in ["FAILED", "CANCELLED"]:
-            reason = result["QueryExecution"]["Status"].get("StateChangeReason", "No reason provided")
-            raise RuntimeError(f"Athena query {state}: {reason}")
 
         time.sleep(1)
 
-    results = athena.get_query_results(QueryExecutionId=query_execution_id)
+    if state != "SUCCEEDED":
+        reason = result["QueryExecution"]["Status"].get("StateChangeReason", "Unknown error")
+        raise RuntimeError(f"Athena query {state}: {reason}")
 
-    rows = results["ResultSet"]["Rows"]
-    columns = [col.get("VarCharValue", "") for col in rows[0]["Data"]]
+    rows = []
+    column_names = None
+    next_token = None
 
-    data = []
-    for row in rows[1:]:
-        data.append([col.get("VarCharValue", None) for col in row["Data"]])
+    while True:
+        if next_token:
+            results = athena.get_query_results(
+                QueryExecutionId=query_execution_id,
+                NextToken=next_token
+            )
+        else:
+            results = athena.get_query_results(QueryExecutionId=query_execution_id)
 
-    return pd.DataFrame(data, columns=columns)
+        result_rows = results["ResultSet"]["Rows"]
 
+        if column_names is None:
+            column_names = [col.get("VarCharValue", "") for col in result_rows[0]["Data"]]
+            result_rows = result_rows[1:]
 
+        for row in result_rows:
+            rows.append([
+                col.get("VarCharValue", None)
+                for col in row.get("Data", [])
+            ])
+
+        next_token = results.get("NextToken")
+
+        if not next_token:
+            break
+
+    return pd.DataFrame(rows, columns=column_names)
+
+@st.cache_data(ttl=3600)
 def run_sql_file(file_name: str) -> pd.DataFrame:
     query_path = QUERY_DIR / file_name
 

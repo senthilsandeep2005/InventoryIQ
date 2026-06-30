@@ -6,8 +6,8 @@ sys.path.append(str(Path(__file__).resolve().parents[1]))
 import pandas as pd
 import streamlit as st
 import plotly.express as px
-from utils.athena_client import run_sql_file
 
+from utils.athena_client import run_sql_file
 from utils.style_loader import load_css
 from utils.data_loader import load_data
 
@@ -23,21 +23,20 @@ st.markdown("<div style='height: 24px;'></div>", unsafe_allow_html=True)
 
 inventory, suppliers, sales, transactions, purchase_orders = load_data()
 
-# Clean sales fields from Athena
-sales["quantity_ordered"] = pd.to_numeric(sales["quantity_ordered"], errors="coerce")
-sales["unit_price"] = pd.to_numeric(sales["unit_price"], errors="coerce")
-sales["calculated_revenue"] = sales["quantity_ordered"] * sales["unit_price"]
-sales["sales_revenue"] = sales["calculated_revenue"]
+# Clean numeric fields used by local table logic
+numeric_inventory_columns = [
+    "stock_level",
+    "reorder_point",
+    "days_of_inventory",
+    "reorder_quantity",
+    "inventory_value",
+    "kpi_score",
+]
 
-# Clean date/month field
-if "order_date" in sales.columns:
-    sales["order_date"] = sales["order_date"].astype(str)
-    sales["sales_month"] = sales["order_date"].str.slice(0, 7)
+for col in numeric_inventory_columns:
+    if col in inventory.columns:
+        inventory[col] = pd.to_numeric(inventory[col], errors="coerce")
 
-if "sales_month" not in sales.columns and "order_month" in sales.columns:
-    sales["sales_month"] = sales["order_month"]
-
-# Clean transaction compatibility
 if "transaction_type" in transactions.columns:
     transactions["event_type"] = transactions["transaction_type"]
 
@@ -57,16 +56,24 @@ def metric_card(label, value, icon):
     )
 
 
+def format_number(value):
+    return f"{float(value):,.0f}"
+
+
+def format_currency(value):
+    return f"${float(value):,.0f}"
+
+
 st.title("📦 InventoryIQ")
 st.caption("Intelligent Inventory Optimization Platform | Python + AWS S3 + Athena + Streamlit")
 
-# KPI calculations
+# KPI cards powered directly by Athena SQL
 kpi_df = run_sql_file("executive_kpis_athena.sql")
 
-total_skus = int(kpi_df.loc[0, "total_skus"])
+total_skus = int(float(kpi_df.loc[0, "total_skus"]))
 total_inventory_value = float(kpi_df.loc[0, "total_inventory_value"])
 avg_health_score = float(kpi_df.loc[0, "avg_inventory_health_score"])
-high_risk_skus = int(kpi_df.loc[0, "high_risk_skus"])
+high_risk_skus = int(float(kpi_df.loc[0, "high_risk_skus"]))
 total_reorder_qty = float(kpi_df.loc[0, "total_reorder_quantity"])
 
 kpi1, kpi2, kpi3, kpi4, kpi5 = st.columns(5)
@@ -75,7 +82,7 @@ with kpi1:
     metric_card("Total SKUs", f"{total_skus:,}", "📦")
 
 with kpi2:
-    metric_card("Inventory Value", f"${total_inventory_value:,.0f}", "💰")
+    metric_card("Inventory Value", format_currency(total_inventory_value), "💰")
 
 with kpi3:
     metric_card("Avg Health Score", f"{avg_health_score:.3f}", "📊")
@@ -84,17 +91,16 @@ with kpi4:
     metric_card("High Risk SKUs", f"{high_risk_skus:,}", "⚠️")
 
 with kpi5:
-    metric_card("Reorder Qty", f"{total_reorder_qty:,}", "📋")
+    metric_card("Reorder Qty", format_number(total_reorder_qty), "📋")
 
 st.divider()
 
 left, right = st.columns(2)
 
 with left:
-    inventory_by_category = (
-        inventory.groupby("category", as_index=False)
-        .agg(total_inventory_value=("inventory_value", "sum"))
-        .sort_values("total_inventory_value", ascending=False)
+    inventory_by_category = run_sql_file("inventory_value_by_category_athena.sql")
+    inventory_by_category["total_inventory_value"] = pd.to_numeric(
+        inventory_by_category["total_inventory_value"], errors="coerce"
     )
 
     fig_inventory = px.bar(
@@ -107,16 +113,9 @@ with left:
     st.plotly_chart(fig_inventory, use_container_width=True)
 
 with right:
-    sales_with_category = sales.merge(
-        inventory[["item_id", "category"]],
-        on="item_id",
-        how="left"
-    )
-
-    sales_by_category = (
-        sales_with_category.groupby("category", as_index=False)
-        .agg(total_revenue=("calculated_revenue", "sum"))
-        .sort_values("total_revenue", ascending=False)
+    sales_by_category = run_sql_file("sales_revenue_by_category_athena.sql")
+    sales_by_category["total_revenue"] = pd.to_numeric(
+        sales_by_category["total_revenue"], errors="coerce"
     )
 
     fig_sales = px.bar(
@@ -131,11 +130,16 @@ with right:
 left, right = st.columns(2)
 
 with left:
-    monthly_sales = (
-        sales.groupby("sales_month", as_index=False)
-        .agg(total_revenue=("calculated_revenue", "sum"))
-        .sort_values("sales_month")
+    monthly_sales = run_sql_file("monthly_sales_trend_athena.sql")
+
+    if "sales_month" not in monthly_sales.columns and "order_month" in monthly_sales.columns:
+        monthly_sales = monthly_sales.rename(columns={"order_month": "sales_month"})
+
+    monthly_sales["total_revenue"] = pd.to_numeric(
+        monthly_sales["total_revenue"], errors="coerce"
     )
+
+    monthly_sales = monthly_sales.sort_values("sales_month")
 
     fig_monthly = px.line(
         monthly_sales,
@@ -148,10 +152,18 @@ with left:
     st.plotly_chart(fig_monthly, use_container_width=True)
 
 with right:
-    transaction_summary = (
-        transactions.groupby("event_type", as_index=False)
-        .agg(transaction_count=("item_id", "count"))
-        .sort_values("transaction_count", ascending=False)
+    transaction_summary = run_sql_file("transaction_activity_athena.sql")
+
+    if "transaction_type" in transaction_summary.columns and "event_type" not in transaction_summary.columns:
+        transaction_summary = transaction_summary.rename(columns={"transaction_type": "event_type"})
+
+    if "transaction_count" not in transaction_summary.columns:
+        count_column = [col for col in transaction_summary.columns if "count" in col.lower()]
+        if count_column:
+            transaction_summary = transaction_summary.rename(columns={count_column[0]: "transaction_count"})
+
+    transaction_summary["transaction_count"] = pd.to_numeric(
+        transaction_summary["transaction_count"], errors="coerce"
     )
 
     fig_transactions = px.pie(
@@ -203,6 +215,7 @@ reorder_table = (
     .sort_values("priority_score", ascending=False)
     .head(10)
 )
+
 st.dataframe(
     reorder_table[
         [

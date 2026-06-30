@@ -3,11 +3,12 @@ from pathlib import Path
 
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 
+import pandas as pd
 import streamlit as st
 import plotly.express as px
 
 from utils.style_loader import load_css
-from utils.data_loader import load_data
+from utils.athena_client import run_query
 
 
 st.set_page_config(
@@ -20,18 +21,44 @@ load_css()
 st.markdown("<div style='height: 24px;'></div>", unsafe_allow_html=True)
 
 
-inventory, suppliers, sales, transactions, purchase_orders = load_data()
+@st.cache_data(ttl=3600)
+def load_sales_data():
+    return run_query("""
+        SELECT
+            s.sales_order_id,
+            s.item_id,
+            i.category AS category,
+            i.supplier_id AS supplier_id,
+            CAST(s.quantity_ordered AS DOUBLE) AS quantity_ordered,
+            CAST(s.unit_price AS DOUBLE) AS unit_price,
+            CAST(s.order_date AS VARCHAR) AS order_date,
+            SUBSTR(CAST(s.order_date AS VARCHAR), 1, 7) AS order_month,
+            ROUND(CAST(s.quantity_ordered AS DOUBLE) * CAST(s.unit_price AS DOUBLE), 2) AS calculated_revenue
+        FROM sales_orders s
+        LEFT JOIN inventory_data_cleaning i
+            ON s.item_id = i.item_id
+    """)
 
-sales = sales.merge(
-    inventory[["item_id", "category", "supplier_id"]],
-    on="item_id",
-    how="left"
-)
 
-sales["order_date"] = sales["order_date"].astype(str)
-sales["order_month"] = sales["order_date"].str.slice(0, 7)
+sales = load_sales_data()
 
-sales["calculated_revenue"] = sales["quantity_ordered"] * sales["unit_price"]
+sales["quantity_ordered"] = pd.to_numeric(sales["quantity_ordered"], errors="coerce")
+sales["unit_price"] = pd.to_numeric(sales["unit_price"], errors="coerce")
+sales["calculated_revenue"] = pd.to_numeric(sales["calculated_revenue"], errors="coerce")
+sales["order_month"] = sales["order_month"].astype(str)
+
+
+def metric_card(label, value, icon):
+    st.markdown(
+        f"""
+        <div class="metric-card">
+            <div class="metric-label">{icon} {label}</div>
+            <div class="metric-value">{value}</div>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
 
 st.title("💰 Sales Analytics")
 st.caption("Analyze revenue trends, category performance, top-selling SKUs, and customer demand.")
@@ -58,19 +85,6 @@ if selected_supplier != "All":
 if selected_month != "All":
     filtered_sales = filtered_sales[filtered_sales["order_month"] == selected_month]
 
-
-def metric_card(label, value, icon):
-    st.markdown(
-        f"""
-        <div class="metric-card">
-            <div class="metric-label">{icon} {label}</div>
-            <div class="metric-value">{value}</div>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-
-
 st.subheader("Filtered Sales Overview")
 
 total_revenue = filtered_sales["calculated_revenue"].sum()
@@ -87,7 +101,7 @@ with kpi2:
     metric_card("Orders", f"{total_orders:,}", "🧾")
 
 with kpi3:
-    metric_card("Units Sold", f"{units_sold:,}", "📦")
+    metric_card("Units Sold", f"{units_sold:,.0f}", "📦")
 
 with kpi4:
     metric_card("Avg Order Value", f"${avg_order_value:,.2f}", "📊")
@@ -151,13 +165,11 @@ st.dataframe(
 st.divider()
 
 left, right = st.columns(2)
-with left:
 
+with left:
     supplier_summary = (
         filtered_sales.groupby("supplier_id", as_index=False)
-        .agg(
-            total_revenue=("calculated_revenue", "sum")
-        )
+        .agg(total_revenue=("calculated_revenue", "sum"))
         .sort_values("total_revenue", ascending=False)
     )
 
@@ -169,8 +181,8 @@ with left:
     )
 
     st.plotly_chart(fig_supplier, use_container_width=True)
-with right:
 
+with right:
     fig_order_size = px.histogram(
         filtered_sales,
         x="quantity_ordered",
@@ -179,7 +191,7 @@ with right:
     )
 
     st.plotly_chart(fig_order_size, use_container_width=True)
-    
+
 st.subheader("Sales Order Explorer")
 
 st.dataframe(

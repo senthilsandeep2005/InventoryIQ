@@ -21,6 +21,23 @@ st.markdown("<div style='height: 24px;'></div>", unsafe_allow_html=True)
 
 
 inventory, suppliers, sales, transactions, purchase_orders = load_data()
+numeric_inventory_columns = [
+    "inventory_value",
+    "days_of_inventory",
+]
+
+for col in numeric_inventory_columns:
+    if col in inventory.columns:
+        inventory[col] = inventory[col].astype(float)
+
+numeric_supplier_columns = [
+    "reliability_score",
+    "on_time_delivery_rate",
+]
+
+for col in numeric_supplier_columns:
+    if col in suppliers.columns:
+        suppliers[col] = suppliers[col].astype(float)
 
 supplier_inventory = inventory.merge(
     suppliers,

@@ -3,6 +3,7 @@ from pathlib import Path
 
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 
+import pandas as pd
 import streamlit as st
 import plotly.express as px
 
@@ -19,11 +20,36 @@ st.set_page_config(
 load_css()
 st.markdown("<div style='height: 24px;'></div>", unsafe_allow_html=True)
 
-
 inventory, suppliers, sales, transactions, purchase_orders = load_data()
+
+numeric_columns = [
+    "inventory_value",
+    "stock_level",
+    "reorder_point",
+    "reorder_quantity",
+    "days_of_inventory",
+]
+
+for col in numeric_columns:
+    if col in inventory.columns:
+        inventory[col] = pd.to_numeric(inventory[col], errors="coerce")
+
 inventory["abc_class"] = inventory["inventory_value"].apply(
     lambda value: "A" if value >= 50000 else "B" if value >= 15000 else "C"
 )
+
+
+def metric_card(label, value, icon):
+    st.markdown(
+        f"""
+        <div class="metric-card">
+            <div class="metric-label">{icon} {label}</div>
+            <div class="metric-value">{value}</div>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
 
 st.title("📦 Inventory Analytics")
 st.caption("Explore inventory value, stock levels, reorder needs, and SKU health across the distribution center.")
@@ -56,17 +82,6 @@ total_skus = filtered_inventory["item_id"].nunique()
 inventory_value = filtered_inventory["inventory_value"].sum()
 avg_stock_level = filtered_inventory["stock_level"].mean()
 avg_days_inventory = filtered_inventory["days_of_inventory"].mean()
-
-def metric_card(label, value, icon):
-    st.markdown(
-        f"""
-        <div class="metric-card">
-            <div class="metric-label">{icon} {label}</div>
-            <div class="metric-value">{value}</div>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
 
 kpi1, kpi2, kpi3, kpi4 = st.columns(4)
 
@@ -129,6 +144,7 @@ with left:
             inventory_value=("inventory_value", "sum"),
             sku_count=("item_id", "count")
         )
+        .sort_values("abc_class")
     )
 
     fig_abc = px.bar(
@@ -176,8 +192,6 @@ st.dataframe(
 )
 
 st.divider()
-
-
 
 st.subheader("SKU Explorer")
 

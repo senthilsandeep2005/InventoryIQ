@@ -4,12 +4,27 @@ from utils.style_loader import load_css
 
 
 st.set_page_config(
-    page_title="InventoryIQ",
-    page_icon="📦",
-    layout="wide"
+    page_title="Overview",
+    page_icon="images/inventoryiq_logo_final.png",
+    layout="wide",
 )
 
 load_css()
+st.markdown(
+    """
+    <style>
+    [data-testid="stSidebarNav"] ul li:first-child a span {
+        font-size: 0;
+    }
+
+    [data-testid="stSidebarNav"] ul li:first-child a span::after {
+        content: "Overview";
+        font-size: 16px;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 IMAGE_DIR = PROJECT_ROOT / "images"
 

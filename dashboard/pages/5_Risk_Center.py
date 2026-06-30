@@ -9,7 +9,8 @@ import plotly.express as px
 from utils.style_loader import load_css
 from utils.data_loader import load_data
 
-
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+IMAGE_DIR = PROJECT_ROOT / "images"
 st.set_page_config(
     page_title="Risk Center",
     page_icon="⚠️",
@@ -43,8 +44,11 @@ risk_data = inventory.merge(
     on="supplier_id",
     how="left"
 )
-
-st.title("⚠️ Risk Center")
+col_icon, col_title = st.columns([0.08, 0.92])
+with col_icon:
+    st.image(str(IMAGE_DIR / "risk_center_icon.png"), width=54)
+with col_title:
+    st.title("Risk Center")
 st.caption("Identify stockout risk, supplier risk, slow-moving inventory, and urgent replenishment needs.")
 
 st.sidebar.header("Risk Filters")
@@ -74,7 +78,7 @@ def metric_card(label, value, icon):
     st.markdown(
         f"""
         <div class="metric-card">
-            <div class="metric-label">{icon} {label}</div>
+            <div class="metric-label">{label}</div>
             <div class="metric-value">{value}</div>
         </div>
         """,
@@ -92,16 +96,16 @@ excess_inventory_skus = (filtered_risk["excess_inventory_flag"] == 1).sum()
 kpi1, kpi2, kpi3, kpi4 = st.columns(4)
 
 with kpi1:
-    metric_card("High Risk SKUs", f"{high_risk_skus:,}", "⚠️")
+    metric_card("High Risk SKUs", f"{high_risk_skus:,}", "")
 
 with kpi2:
-    metric_card("Reorder Quantity", f"{reorder_qty:,}", "📋")
+    metric_card("Reorder Quantity", f"{reorder_qty:,}", "")
 
 with kpi3:
-    metric_card("Slow Moving SKUs", f"{slow_moving_skus:,}", "🐢")
+    metric_card("Slow Moving SKUs", f"{slow_moving_skus:,}", "")
 
 with kpi4:
-    metric_card("Excess Inventory SKUs", f"{excess_inventory_skus:,}", "📦")
+    metric_card("Excess Inventory SKUs", f"{excess_inventory_skus:,}", "")
 
 st.divider()
 

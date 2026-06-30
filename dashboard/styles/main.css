@@ -13,19 +13,84 @@
     --danger: #dc2626;
 }
 
+/* Main page spacing */
 .block-container {
     padding-top: 2rem;
     padding-bottom: 2rem;
 }
 
+/* Page headings */
 h1, h2, h3 {
     color: var(--secondary);
 }
 
+/* Premium dark sidebar */
 [data-testid="stSidebar"] {
-    background-color: #f1f5f9;
+    background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%) !important;
 }
 
+/* Sidebar text */
+[data-testid="stSidebar"] * {
+    color: #f8fafc !important;
+}
+
+[data-testid="stSidebar"] a {
+    color: #f8fafc !important;
+}
+
+[data-testid="stSidebar"] button {
+    color: #f8fafc !important;
+}
+
+/* Current selected page in sidebar */
+[data-testid="stSidebar"] [aria-selected="true"],
+[data-testid="stSidebar"] [data-testid="stSidebarNav"] a[aria-current="page"] {
+    background-color: rgba(37, 99, 235, 0.25) !important;
+    border-radius: 10px !important;
+    font-weight: 700 !important;
+}
+
+/* Sidebar filters */
+[data-testid="stSidebar"] label,
+[data-testid="stSidebar"] .stMarkdown,
+[data-testid="stSidebar"] p {
+    color: #f8fafc !important;
+}
+
+/* Keep sidebar dropdown boxes readable */
+[data-testid="stSidebar"] div[data-baseweb="select"] > div {
+    background-color: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+}
+
+[data-testid="stSidebar"] div[data-baseweb="select"] * {
+    color: #111827 !important;
+}
+
+/* Dropdown menu visibility on desktop and mobile */
+div[data-baseweb="select"] * {
+    color: #111827 !important;
+}
+
+div[data-baseweb="popover"] * {
+    color: #111827 !important;
+    background-color: #ffffff !important;
+}
+
+ul[role="listbox"] {
+    background-color: #ffffff !important;
+}
+
+li[role="option"] {
+    color: #111827 !important;
+    background-color: #ffffff !important;
+}
+
+li[role="option"]:hover {
+    background-color: #e8f0fe !important;
+}
+
+/* KPI cards */
 .metric-card {
     background: var(--card);
     border: 1px solid var(--border);
@@ -38,6 +103,7 @@ h1, h2, h3 {
     font-size: 14px;
     color: var(--muted);
     margin-bottom: 6px;
+    letter-spacing: 0.01em;
 }
 
 .metric-value {
@@ -46,6 +112,7 @@ h1, h2, h3 {
     color: var(--secondary);
 }
 
+/* Section cards */
 .section-card {
     background: var(--card);
     border: 1px solid var(--border);
@@ -53,30 +120,12 @@ h1, h2, h3 {
     padding: 24px;
     box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
 }
-/* Hide Streamlit top-right toolbar / deploy / menu controls */
 
-
+/* Hide Streamlit decoration and main menu, but keep sidebar toggle usable */
 [data-testid="stDecoration"] {
     display: none;
 }
 
 #MainMenu {
     visibility: hidden;
-}
-
-/* Fix sidebar text visibility on mobile */
-[data-testid="stSidebar"] {
-    background-color: #eef3f9;
-}
-
-[data-testid="stSidebar"] * {
-    color: #1f2937 !important;
-}
-
-[data-testid="stSidebar"] a {
-    color: #1f2937 !important;
-}
-
-[data-testid="stSidebar"] button {
-    color: #1f2937 !important;
 }

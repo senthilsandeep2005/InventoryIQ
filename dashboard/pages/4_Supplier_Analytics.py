@@ -9,7 +9,8 @@ import plotly.express as px
 from utils.style_loader import load_css
 from utils.data_loader import load_data
 
-
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+IMAGE_DIR = PROJECT_ROOT / "images"
 st.set_page_config(
     page_title="Supplier Analytics",
     page_icon="🚚",
@@ -44,8 +45,11 @@ supplier_inventory = inventory.merge(
     on="supplier_id",
     how="left"
 )
-
-st.title("🚚 Supplier Analytics")
+col_icon, col_title = st.columns([0.08, 0.92])
+with col_icon:
+    st.image(str(IMAGE_DIR / "supplier_icon.png"), width=54)
+with col_title:
+    st.title("Supplier Analytics")
 st.caption("Evaluate supplier reliability, inventory exposure, delivery performance, and supplier risk.")
 
 st.sidebar.header("Supplier Filters")
@@ -75,7 +79,7 @@ def metric_card(label, value, icon):
     st.markdown(
         f"""
         <div class="metric-card">
-            <div class="metric-label">{icon} {label}</div>
+            <div class="metric-label">{label}</div>
             <div class="metric-value">{value}</div>
         </div>
         """,
@@ -93,16 +97,16 @@ inventory_value = filtered_suppliers["inventory_value"].sum()
 kpi1, kpi2, kpi3, kpi4 = st.columns(4)
 
 with kpi1:
-    metric_card("Suppliers", f"{total_suppliers:,}", "🚚")
+    metric_card("Suppliers", f"{total_suppliers:,}", "")
 
 with kpi2:
-    metric_card("Avg Reliability", f"{avg_reliability:.3f}", "✅")
+    metric_card("Avg Reliability", f"{avg_reliability:.3f}", "")
 
 with kpi3:
-    metric_card("On-Time Delivery", f"{avg_delivery_rate:.3f}", "⏱️")
+    metric_card("On-Time Delivery", f"{avg_delivery_rate:.3f}", "⏱")
 
 with kpi4:
-    metric_card("Inventory Value", f"${inventory_value:,.0f}", "💰")
+    metric_card("Inventory Value", f"${inventory_value:,.0f}", "")
 
 st.divider()
 

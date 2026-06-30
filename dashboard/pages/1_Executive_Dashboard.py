@@ -7,10 +7,13 @@ import pandas as pd
 import streamlit as st
 import plotly.express as px
 
+
+
 from utils.athena_client import run_sql_file
 from utils.style_loader import load_css
 from utils.data_loader import load_data
-
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+IMAGE_DIR = PROJECT_ROOT / "images"
 
 st.set_page_config(
     page_title="InventoryIQ Dashboard",
@@ -48,7 +51,7 @@ def metric_card(label, value, icon):
     st.markdown(
         f"""
         <div class="metric-card">
-            <div class="metric-label">{icon} {label}</div>
+            <div class="metric-label">{label}</div>
             <div class="metric-value">{value}</div>
         </div>
         """,
@@ -63,8 +66,11 @@ def format_number(value):
 def format_currency(value):
     return f"${float(value):,.0f}"
 
-
-st.title("📦 InventoryIQ")
+col_icon, col_title = st.columns([0.08, 0.92])
+with col_icon:
+    st.image(str(IMAGE_DIR / "executive_dashboard_icon.png"), width=54)
+with col_title:
+    st.title("Executive Dashboard")
 st.caption("Intelligent Inventory Optimization Platform | Python + AWS S3 + Athena + Streamlit")
 
 # KPI cards powered directly by Athena SQL
@@ -79,19 +85,19 @@ total_reorder_qty = float(kpi_df.loc[0, "total_reorder_quantity"])
 kpi1, kpi2, kpi3, kpi4, kpi5 = st.columns(5)
 
 with kpi1:
-    metric_card("Total SKUs", f"{total_skus:,}", "📦")
+    metric_card("Total SKUs", f"{total_skus:,}", "")
 
 with kpi2:
-    metric_card("Inventory Value", format_currency(total_inventory_value), "💰")
+    metric_card("Inventory Value", format_currency(total_inventory_value), "")
 
 with kpi3:
-    metric_card("Avg Health Score", f"{avg_health_score:.3f}", "📊")
+    metric_card("Avg Health Score", f"{avg_health_score:.3f}", "")
 
 with kpi4:
-    metric_card("High Risk SKUs", f"{high_risk_skus:,}", "⚠️")
+    metric_card("High Risk SKUs", f"{high_risk_skus:,}", "")
 
 with kpi5:
-    metric_card("Reorder Qty", format_number(total_reorder_qty), "📋")
+    metric_card("Reorder Qty", format_number(total_reorder_qty), "")
 
 st.divider()
 

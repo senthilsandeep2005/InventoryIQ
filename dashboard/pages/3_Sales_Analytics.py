@@ -10,7 +10,8 @@ import plotly.express as px
 from utils.style_loader import load_css
 from utils.athena_client import run_query
 
-
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+IMAGE_DIR = PROJECT_ROOT / "images"
 st.set_page_config(
     page_title="Sales Analytics",
     page_icon="💰",
@@ -52,15 +53,18 @@ def metric_card(label, value, icon):
     st.markdown(
         f"""
         <div class="metric-card">
-            <div class="metric-label">{icon} {label}</div>
+            <div class="metric-label">{label}</div>
             <div class="metric-value">{value}</div>
         </div>
         """,
         unsafe_allow_html=True
     )
 
-
-st.title("💰 Sales Analytics")
+col_icon, col_title = st.columns([0.08, 0.92])
+with col_icon:
+    st.image(str(IMAGE_DIR / "sales_icon.png"), width=54)
+with col_title:
+    st.title("Sales Analytics")
 st.caption("Analyze revenue trends, category performance, top-selling SKUs, and customer demand.")
 
 st.sidebar.header("Sales Filters")
@@ -95,16 +99,16 @@ avg_order_value = total_revenue / total_orders if total_orders else 0
 kpi1, kpi2, kpi3, kpi4 = st.columns(4)
 
 with kpi1:
-    metric_card("Revenue", f"${total_revenue:,.0f}", "💰")
+    metric_card("Revenue", f"${total_revenue:,.0f}", "")
 
 with kpi2:
-    metric_card("Orders", f"{total_orders:,}", "🧾")
+    metric_card("Orders", f"{total_orders:,}", "")
 
 with kpi3:
-    metric_card("Units Sold", f"{units_sold:,.0f}", "📦")
+    metric_card("Units Sold", f"{units_sold:,.0f}", "")
 
 with kpi4:
-    metric_card("Avg Order Value", f"${avg_order_value:,.2f}", "📊")
+    metric_card("Avg Order Value", f"${avg_order_value:,.2f}", "")
 
 st.divider()
 

@@ -54,11 +54,7 @@ h1, h2, h3 {
     box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
 }
 /* Hide Streamlit top-right toolbar / deploy / menu controls */
-[data-testid="stToolbar"] {
-    visibility: hidden;
-    height: 0%;
-    position: fixed;
-}
+
 
 [data-testid="stDecoration"] {
     display: none;

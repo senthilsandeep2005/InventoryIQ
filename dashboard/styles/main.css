@@ -8,9 +8,6 @@
     --text: #1e293b;
     --muted: #64748b;
     --border: #e2e8f0;
-    --success: #16a34a;
-    --warning: #f59e0b;
-    --danger: #dc2626;
 }
 
 /* Main page spacing */
@@ -24,40 +21,45 @@ h1, h2, h3 {
     color: var(--secondary);
 }
 
-/* Premium dark sidebar */
+/* Sidebar background: light enough for logo visibility */
 [data-testid="stSidebar"] {
-    background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%) !important;
+    background: linear-gradient(180deg, #eaf2ff 0%, #f8fbff 100%) !important;
 }
 
 /* Sidebar text */
 [data-testid="stSidebar"] * {
-    color: #f8fafc !important;
+    color: #0f172a !important;
 }
 
 [data-testid="stSidebar"] a {
-    color: #f8fafc !important;
+    color: #0f172a !important;
 }
 
 [data-testid="stSidebar"] button {
-    color: #f8fafc !important;
+    color: #0f172a !important;
 }
 
-/* Current selected page in sidebar */
+/* Selected sidebar page */
 [data-testid="stSidebar"] [aria-selected="true"],
 [data-testid="stSidebar"] [data-testid="stSidebarNav"] a[aria-current="page"] {
-    background-color: rgba(37, 99, 235, 0.25) !important;
+    background-color: rgba(37, 99, 235, 0.18) !important;
     border-radius: 10px !important;
     font-weight: 700 !important;
+}
+
+/* Add spacing under logo area */
+[data-testid="stSidebar"] img {
+    margin-bottom: 18px;
 }
 
 /* Sidebar filters */
 [data-testid="stSidebar"] label,
 [data-testid="stSidebar"] .stMarkdown,
 [data-testid="stSidebar"] p {
-    color: #f8fafc !important;
+    color: #0f172a !important;
 }
 
-/* Keep sidebar dropdown boxes readable */
+/* Dropdown boxes */
 [data-testid="stSidebar"] div[data-baseweb="select"] > div {
     background-color: #ffffff !important;
     border: 1px solid #cbd5e1 !important;
@@ -67,7 +69,7 @@ h1, h2, h3 {
     color: #111827 !important;
 }
 
-/* Dropdown menu visibility on desktop and mobile */
+/* Dropdown menu visibility */
 div[data-baseweb="select"] * {
     color: #111827 !important;
 }
@@ -121,7 +123,7 @@ li[role="option"]:hover {
     box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
 }
 
-/* Hide Streamlit decoration and main menu, but keep sidebar toggle usable */
+/* Hide Streamlit decoration/main menu but keep sidebar toggle */
 [data-testid="stDecoration"] {
     display: none;
 }

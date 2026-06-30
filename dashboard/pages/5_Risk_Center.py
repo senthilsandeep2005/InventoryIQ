@@ -18,6 +18,11 @@ st.set_page_config(
 )
 
 load_css()
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+IMAGE_DIR = PROJECT_ROOT / "images"
+
+st.sidebar.image(str(IMAGE_DIR / "inventoryiq_logo_final.png"), use_container_width=True)
+st.sidebar.markdown("---")
 st.markdown("<div style='height: 24px;'></div>", unsafe_allow_html=True)
 
 inventory, suppliers, sales, transactions, purchase_orders = load_data()

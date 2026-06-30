@@ -13,8 +13,7 @@ load_css()
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 IMAGE_DIR = PROJECT_ROOT / "images"
 
-st.sidebar.image(str(IMAGE_DIR / "inventoryiq_logo_final.png"), use_container_width=True)
-st.sidebar.markdown("---")
+
 st.markdown(
     """
     <style>

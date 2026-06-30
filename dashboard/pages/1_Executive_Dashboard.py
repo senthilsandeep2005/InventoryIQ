@@ -66,11 +66,16 @@ def format_number(value):
 def format_currency(value):
     return f"${float(value):,.0f}"
 
-col_icon, col_title = st.columns([0.08, 0.92])
-with col_icon:
-    st.image(str(IMAGE_DIR / "executive_dashboard_icon.png"), width=54)
-with col_title:
-    st.title("Executive Dashboard")
+header_col1, header_col2 = st.columns([0.055, 0.945], vertical_alignment="center")
+
+with header_col1:
+    st.image(str(IMAGE_DIR / "executive_dashboard_icon.png"), width=62)
+
+with header_col2:
+    st.markdown(
+        "<h1 style='margin:0; padding:0;'>Executive Dashboard</h1>",
+        unsafe_allow_html=True
+    )
 st.caption("Intelligent Inventory Optimization Platform | Python + AWS S3 + Athena + Streamlit")
 
 # KPI cards powered directly by Athena SQL
@@ -183,7 +188,7 @@ with right:
 
 st.divider()
 
-st.subheader("⚠️ High Risk SKUs")
+st.subheader("High Risk SKUs")
 
 high_risk_table = (
     inventory[inventory["stockout_risk"] == "High"]
@@ -207,7 +212,7 @@ st.dataframe(
     hide_index=True
 )
 
-st.subheader("📋 Reorder Priority Recommendations")
+st.subheader("Reorder Priority Recommendations")
 
 reorder_table = inventory[inventory["reorder_quantity"] > 0].copy()
 

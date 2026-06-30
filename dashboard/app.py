@@ -89,5 +89,5 @@ st.markdown(
 )
 
 st.info(
-    "This project demonstrates cloud analytics, business intelligence, inventory optimization, and data visualization skills for Product Management, Solutions Engineering, Technical Sales, Business Analytics, and Cloud Architecture roles."
+    "InventoryIQ converts warehouse, sales, supplier, and transaction data into interactive dashboards that help users explore inventory health, demand trends, supplier performance, and operational risk."
 )

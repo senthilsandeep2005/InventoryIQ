@@ -68,10 +68,6 @@ h1, h2, h3 {
     visibility: hidden;
 }
 
-header {
-    visibility: hidden;
-}
-
 /* Fix sidebar text visibility on mobile */
 [data-testid="stSidebar"] {
     background-color: #eef3f9;

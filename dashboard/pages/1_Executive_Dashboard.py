@@ -1,11 +1,15 @@
 import sys
 from pathlib import Path
+
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 
-from utils.style_loader import load_css
-import streamlit as st
 import pandas as pd
+import streamlit as st
 import plotly.express as px
+
+from utils.style_loader import load_css
+from utils.data_loader import load_data
+
 
 st.set_page_config(
     page_title="InventoryIQ Dashboard",
@@ -15,22 +19,29 @@ st.set_page_config(
 
 load_css()
 
-PROJECT_ROOT = Path(__file__).resolve().parents[2]
-DATA_DIR = PROJECT_ROOT / "data"
-
-from utils.data_loader import load_data
-
 inventory, suppliers, sales, transactions, purchase_orders = load_data()
 
-st.title("📦 InventoryIQ")
-st.caption("Intelligent Inventory Optimization Platform | Python + AWS S3 + Athena + Streamlit")
+# Clean sales fields from Athena
+sales["quantity_ordered"] = pd.to_numeric(sales["quantity_ordered"], errors="coerce")
+sales["unit_price"] = pd.to_numeric(sales["unit_price"], errors="coerce")
+sales["calculated_revenue"] = sales["quantity_ordered"] * sales["unit_price"]
+sales["sales_revenue"] = sales["calculated_revenue"]
 
-# KPI calculations
-total_skus = inventory["item_id"].nunique()
-total_inventory_value = inventory["inventory_value"].sum()
-avg_health_score = inventory["kpi_score"].mean()
-high_risk_skus = (inventory["stockout_risk"] == "High").sum()
-total_reorder_qty = inventory["reorder_quantity"].sum()
+# Clean date/month field
+if "order_date" in sales.columns:
+    sales["order_date"] = sales["order_date"].astype(str)
+    sales["sales_month"] = sales["order_date"].str.slice(0, 7)
+
+if "sales_month" not in sales.columns and "order_month" in sales.columns:
+    sales["sales_month"] = sales["order_month"]
+
+# Clean transaction compatibility
+if "transaction_type" in transactions.columns:
+    transactions["event_type"] = transactions["transaction_type"]
+
+if "event_type" in transactions.columns:
+    transactions["transaction_type"] = transactions["event_type"]
+
 
 def metric_card(label, value, icon):
     st.markdown(
@@ -43,6 +54,16 @@ def metric_card(label, value, icon):
         unsafe_allow_html=True
     )
 
+
+st.title("📦 InventoryIQ")
+st.caption("Intelligent Inventory Optimization Platform | Python + AWS S3 + Athena + Streamlit")
+
+# KPI calculations
+total_skus = inventory["item_id"].nunique()
+total_inventory_value = inventory["inventory_value"].sum()
+avg_health_score = inventory["kpi_score"].mean()
+high_risk_skus = (inventory["stockout_risk"] == "High").sum()
+total_reorder_qty = inventory["reorder_quantity"].sum()
 
 kpi1, kpi2, kpi3, kpi4, kpi5 = st.columns(5)
 
@@ -63,7 +84,6 @@ with kpi5:
 
 st.divider()
 
-# Charts
 left, right = st.columns(2)
 
 with left:
@@ -79,6 +99,7 @@ with left:
         y="total_inventory_value",
         title="Inventory Value by Category"
     )
+
     st.plotly_chart(fig_inventory, use_container_width=True)
 
 with right:
@@ -90,7 +111,7 @@ with right:
 
     sales_by_category = (
         sales_with_category.groupby("category", as_index=False)
-        .agg(total_revenue=("sales_revenue", "sum"))
+        .agg(total_revenue=("calculated_revenue", "sum"))
         .sort_values("total_revenue", ascending=False)
     )
 
@@ -100,17 +121,16 @@ with right:
         y="total_revenue",
         title="Sales Revenue by Category"
     )
+
     st.plotly_chart(fig_sales, use_container_width=True)
 
 left, right = st.columns(2)
 
 with left:
-    sales["order_date"] = pd.to_datetime(sales["order_date"])
-    sales["sales_month"] = sales["order_date"].dt.to_period("M").astype(str)
-
     monthly_sales = (
         sales.groupby("sales_month", as_index=False)
-        .agg(total_revenue=("sales_revenue", "sum"))
+        .agg(total_revenue=("calculated_revenue", "sum"))
+        .sort_values("sales_month")
     )
 
     fig_monthly = px.line(
@@ -120,30 +140,37 @@ with left:
         title="Monthly Sales Trend",
         markers=True
     )
+
     st.plotly_chart(fig_monthly, use_container_width=True)
 
 with right:
     transaction_summary = (
-    transactions.groupby("event_type", as_index=False)
-    .agg(transaction_count=("item_id", "count"))
-    .sort_values("transaction_count", ascending=False)
+        transactions.groupby("event_type", as_index=False)
+        .agg(transaction_count=("item_id", "count"))
+        .sort_values("transaction_count", ascending=False)
     )
 
     fig_transactions = px.pie(
-    transaction_summary,
-    names="event_type",
-    values="transaction_count",
-    title="Warehouse Transaction Activity"
+        transaction_summary,
+        names="event_type",
+        values="transaction_count",
+        title="Warehouse Transaction Activity"
     )
+
     st.plotly_chart(fig_transactions, use_container_width=True)
 
 st.divider()
 
 st.subheader("⚠️ High Risk SKUs")
+
 high_risk_table = (
     inventory[inventory["stockout_risk"] == "High"]
     .sort_values("reorder_quantity", ascending=False)
-    [
+    .head(10)
+)
+
+st.dataframe(
+    high_risk_table[
         [
             "item_id",
             "category",
@@ -153,26 +180,39 @@ high_risk_table = (
             "reorder_quantity",
             "supplier_id",
         ]
-    ]
+    ].reset_index(drop=True),
+    use_container_width=True,
+    hide_index=True
 )
 
-st.dataframe(high_risk_table, use_container_width=True, hide_index=True)
+st.subheader("📋 Reorder Priority Recommendations")
 
-st.subheader("📋 Reorder Recommendations")
+reorder_table = inventory[inventory["reorder_quantity"] > 0].copy()
+
+reorder_table["priority_score"] = (
+    reorder_table["inventory_value"]
+    * reorder_table["reorder_quantity"]
+)
+
 reorder_table = (
-    inventory[inventory["reorder_quantity"] > 0]
-    .sort_values("reorder_quantity", ascending=False)
-    [
+    reorder_table
+    .sort_values("priority_score", ascending=False)
+    .head(10)
+)
+st.dataframe(
+    reorder_table[
         [
             "item_id",
             "category",
             "stock_level",
             "reorder_point",
             "reorder_quantity",
+            "inventory_value",
+            "priority_score",
             "stockout_risk",
             "supplier_id",
         ]
-    ]
+    ].reset_index(drop=True),
+    use_container_width=True,
+    hide_index=True
 )
-
-st.dataframe(reorder_table, use_container_width=True, hide_index=True)

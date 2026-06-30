@@ -1,3 +1,5 @@
+#Aggregates top level executive KPIs for the dashboard.
+
 SELECT
     COUNT(item_id) AS total_skus,
     CAST(ROUND(SUM(inventory_value),2) AS DECIMAL(18,2)) AS total_inventory_value,

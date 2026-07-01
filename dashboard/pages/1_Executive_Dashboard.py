@@ -6,7 +6,7 @@ sys.path.append(str(Path(__file__).resolve().parents[1]))
 import pandas as pd
 import streamlit as st
 import plotly.express as px
-
+import base64
 
 
 from utils.athena_client import run_sql_file
@@ -15,6 +15,10 @@ from utils.data_loader import load_data
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 IMAGE_DIR = PROJECT_ROOT / "images"
 
+def image_to_base64(image_path):
+    with open(image_path, "rb") as image_file:
+        return base64.b64encode(image_file.read()).decode()
+
 st.set_page_config(
     page_title="InventoryIQ Dashboard",
     page_icon="📦",
@@ -22,8 +26,6 @@ st.set_page_config(
 )
 
 load_css()
-PROJECT_ROOT = Path(__file__).resolve().parents[2]
-IMAGE_DIR = PROJECT_ROOT / "images"
 
 st.sidebar.image(str(IMAGE_DIR / "inventoryiq_logo_final.png"), use_container_width=True)
 st.sidebar.markdown("---")
@@ -71,16 +73,16 @@ def format_number(value):
 def format_currency(value):
     return f"${float(value):,.0f}"
 
-header_col1, header_col2 = st.columns([0.055, 0.945], vertical_alignment="center")
-
-with header_col1:
-    st.image(str(IMAGE_DIR / "executive_dashboard_icon.png"), width=62)
-
-with header_col2:
-    st.markdown(
-        "<h1 style='margin:0; padding:0;'>Executive Dashboard</h1>",
-        unsafe_allow_html=True
-    )
+st.markdown(
+    f"""
+    <div style="display:flex; align-items:center; gap:18px; margin-bottom:12px;">
+        <img src="data:image/png;base64,{image_to_base64(IMAGE_DIR / 'executive_dashboard_icon.png')}"
+             style="width:72px; height:72px; object-fit:contain;">
+        <h1 style="margin:0; padding:0;">Executive Dashboard</h1>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
 st.caption("Intelligent Inventory Optimization Platform | Python + AWS S3 + Athena + Streamlit")
 
 # KPI cards powered directly by Athena SQL

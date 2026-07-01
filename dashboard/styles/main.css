@@ -131,3 +131,14 @@ li[role="option"]:hover {
 #MainMenu {
     visibility: hidden;
 }
+/* Rename root Streamlit page label from app to Overview on every page */
+[data-testid="stSidebarNav"] ul li:first-child a span {
+    display: none !important;
+}
+
+[data-testid="stSidebarNav"] ul li:first-child a::after {
+    content: "Overview";
+    font-size: 14px;
+    font-weight: 600;
+    color: #0f172a;
+}

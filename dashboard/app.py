@@ -18,12 +18,21 @@ st.markdown(
     """
     <style>
     [data-testid="stSidebarNav"] ul li:first-child a span {
-        font-size: 0;
+        display: none !important;
     }
 
-    [data-testid="stSidebarNav"] ul li:first-child a span::after {
+    [data-testid="stSidebarNav"] ul li:first-child a::after {
         content: "Overview";
-        font-size: 16px;
+        font-size: 14px;
+        font-weight: 600;
+        color: #0f172a;
+    }
+
+    [data-testid="stSidebarNav"] ul li:first-child a {
+        display: flex !important;
+        align-items: center !important;
+        padding: 0.45rem 0.75rem !important;
+        border-radius: 10px !important;
     }
     </style>
     """,

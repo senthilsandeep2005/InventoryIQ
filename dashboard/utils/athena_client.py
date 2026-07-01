@@ -14,7 +14,17 @@ OUTPUT_LOCATION = "s3://inventoryiq-athena-results-sandeep/"
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 QUERY_DIR = PROJECT_ROOT / "athena_queries"
 
-athena = boto3.client("athena", region_name=REGION)
+athena = boto3.client(
+
+    "athena",
+
+    region_name=REGION,
+
+    aws_access_key_id=st.secrets["AWS_ACCESS_KEY_ID"],
+
+    aws_secret_access_key=st.secrets["AWS_SECRET_ACCESS_KEY"],
+
+)
 
 
 def run_query(query: str) -> pd.DataFrame:

@@ -1,5 +1,6 @@
 import sys
 from pathlib import Path
+import base64
 
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 
@@ -11,22 +12,27 @@ from utils.data_loader import load_data
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 IMAGE_DIR = PROJECT_ROOT / "images"
+
+
+def image_to_base64(image_path):
+    with open(image_path, "rb") as image_file:
+        return base64.b64encode(image_file.read()).decode()
+
+
 st.set_page_config(
     page_title="Supplier Analytics",
-    page_icon="🚚",
+    page_icon=str(IMAGE_DIR / "supplier_icon.png"),
     layout="wide"
 )
 
 load_css()
-PROJECT_ROOT = Path(__file__).resolve().parents[2]
-IMAGE_DIR = PROJECT_ROOT / "images"
 
 st.sidebar.image(str(IMAGE_DIR / "inventoryiq_logo_final.png"), use_container_width=True)
 st.sidebar.markdown("---")
 st.markdown("<div style='height: 24px;'></div>", unsafe_allow_html=True)
 
-
 inventory, suppliers, sales, transactions, purchase_orders = load_data()
+
 numeric_inventory_columns = [
     "inventory_value",
     "days_of_inventory",
@@ -50,11 +56,31 @@ supplier_inventory = inventory.merge(
     on="supplier_id",
     how="left"
 )
-col_icon, col_title = st.columns([0.08, 0.92])
-with col_icon:
-    st.image(str(IMAGE_DIR / "supplier_icon.png"), width=54)
-with col_title:
-    st.title("Supplier Analytics")
+
+
+def metric_card(label, value, icon=""):
+    st.markdown(
+        f"""
+        <div class="metric-card">
+            <div class="metric-label">{label}</div>
+            <div class="metric-value">{value}</div>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+
+st.markdown(
+    f"""
+    <div style="display:flex; align-items:center; gap:18px; margin-bottom:12px;">
+        <img src="data:image/png;base64,{image_to_base64(IMAGE_DIR / 'supplier_icon.png')}"
+             style="width:72px; height:72px; object-fit:contain;">
+        <h1 style="margin:0; padding:0;">Supplier Analytics</h1>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
+
 st.caption("Evaluate supplier reliability, inventory exposure, delivery performance, and supplier risk.")
 
 st.sidebar.header("Supplier Filters")
@@ -79,19 +105,6 @@ if selected_region != "All":
 if selected_risk != "All":
     filtered_suppliers = filtered_suppliers[filtered_suppliers["supplier_risk_level"] == selected_risk]
 
-
-def metric_card(label, value, icon):
-    st.markdown(
-        f"""
-        <div class="metric-card">
-            <div class="metric-label">{label}</div>
-            <div class="metric-value">{value}</div>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-
-
 st.subheader("Supplier Performance Overview")
 
 total_suppliers = filtered_suppliers["supplier_id"].nunique()
@@ -102,16 +115,16 @@ inventory_value = filtered_suppliers["inventory_value"].sum()
 kpi1, kpi2, kpi3, kpi4 = st.columns(4)
 
 with kpi1:
-    metric_card("Suppliers", f"{total_suppliers:,}", "")
+    metric_card("Suppliers", f"{total_suppliers:,}")
 
 with kpi2:
-    metric_card("Avg Reliability", f"{avg_reliability:.3f}", "")
+    metric_card("Avg Reliability", f"{avg_reliability:.3f}")
 
 with kpi3:
-    metric_card("On-Time Delivery", f"{avg_delivery_rate:.3f}", "⏱")
+    metric_card("On-Time Delivery", f"{avg_delivery_rate:.3f}")
 
 with kpi4:
-    metric_card("Inventory Value", f"${inventory_value:,.0f}", "")
+    metric_card("Inventory Value", f"${inventory_value:,.0f}")
 
 st.divider()
 

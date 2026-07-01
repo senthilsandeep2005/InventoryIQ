@@ -1,5 +1,6 @@
 import sys
 from pathlib import Path
+import base64
 
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 
@@ -12,15 +13,20 @@ from utils.data_loader import load_data
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 IMAGE_DIR = PROJECT_ROOT / "images"
+
+
+def image_to_base64(image_path):
+    with open(image_path, "rb") as image_file:
+        return base64.b64encode(image_file.read()).decode()
+
+
 st.set_page_config(
     page_title="Inventory Analytics",
-    page_icon="📦",
+    page_icon=str(IMAGE_DIR / "analytics_icon.png"),
     layout="wide"
 )
 
 load_css()
-PROJECT_ROOT = Path(__file__).resolve().parents[2]
-IMAGE_DIR = PROJECT_ROOT / "images"
 
 st.sidebar.image(str(IMAGE_DIR / "inventoryiq_logo_final.png"), use_container_width=True)
 st.sidebar.markdown("---")
@@ -45,7 +51,7 @@ inventory["abc_class"] = inventory["inventory_value"].apply(
 )
 
 
-def metric_card(label, value, icon):
+def metric_card(label, value, icon=""):
     st.markdown(
         f"""
         <div class="metric-card">
@@ -56,11 +62,18 @@ def metric_card(label, value, icon):
         unsafe_allow_html=True
     )
 
-col_icon, col_title = st.columns([0.08, 0.92])
-with col_icon:
-    st.image(str(IMAGE_DIR / "analytics_icon.png"), width=54)
-with col_title:
-    st.title("Inventory Analytics")
+
+st.markdown(
+    f"""
+    <div style="display:flex; align-items:center; gap:18px; margin-bottom:12px;">
+        <img src="data:image/png;base64,{image_to_base64(IMAGE_DIR / 'analytics_icon.png')}"
+             style="width:72px; height:72px; object-fit:contain;">
+        <h1 style="margin:0; padding:0;">Inventory Analytics</h1>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
+
 st.caption("Explore inventory value, stock levels, reorder needs, and SKU health across the distribution center.")
 
 st.sidebar.header("Inventory Filters")
@@ -95,16 +108,16 @@ avg_days_inventory = filtered_inventory["days_of_inventory"].mean()
 kpi1, kpi2, kpi3, kpi4 = st.columns(4)
 
 with kpi1:
-    metric_card("Filtered SKUs", f"{total_skus:,}", "")
+    metric_card("Filtered SKUs", f"{total_skus:,}")
 
 with kpi2:
-    metric_card("Inventory Value", f"${inventory_value:,.0f}", "")
+    metric_card("Inventory Value", f"${inventory_value:,.0f}")
 
 with kpi3:
-    metric_card("Avg Stock Level", f"{avg_stock_level:.1f}", "")
+    metric_card("Avg Stock Level", f"{avg_stock_level:.1f}")
 
 with kpi4:
-    metric_card("Avg Days Inventory", f"{avg_days_inventory:.1f}", "⏱")
+    metric_card("Avg Days Inventory", f"{avg_days_inventory:.1f}")
 
 st.divider()
 

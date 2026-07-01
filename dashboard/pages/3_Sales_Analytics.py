@@ -1,5 +1,6 @@
 import sys
 from pathlib import Path
+import base64
 
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 
@@ -12,15 +13,20 @@ from utils.athena_client import run_query
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 IMAGE_DIR = PROJECT_ROOT / "images"
+
+
+def image_to_base64(image_path):
+    with open(image_path, "rb") as image_file:
+        return base64.b64encode(image_file.read()).decode()
+
+
 st.set_page_config(
     page_title="Sales Analytics",
-    page_icon="💰",
+    page_icon=str(IMAGE_DIR / "sales_icon.png"),
     layout="wide"
 )
 
 load_css()
-PROJECT_ROOT = Path(__file__).resolve().parents[2]
-IMAGE_DIR = PROJECT_ROOT / "images"
 
 st.sidebar.image(str(IMAGE_DIR / "inventoryiq_logo_final.png"), use_container_width=True)
 st.sidebar.markdown("---")
@@ -54,7 +60,7 @@ sales["calculated_revenue"] = pd.to_numeric(sales["calculated_revenue"], errors=
 sales["order_month"] = sales["order_month"].astype(str)
 
 
-def metric_card(label, value, icon):
+def metric_card(label, value, icon=""):
     st.markdown(
         f"""
         <div class="metric-card">
@@ -65,11 +71,18 @@ def metric_card(label, value, icon):
         unsafe_allow_html=True
     )
 
-col_icon, col_title = st.columns([0.08, 0.92])
-with col_icon:
-    st.image(str(IMAGE_DIR / "sales_icon.png"), width=54)
-with col_title:
-    st.title("Sales Analytics")
+
+st.markdown(
+    f"""
+    <div style="display:flex; align-items:center; gap:18px; margin-bottom:12px;">
+        <img src="data:image/png;base64,{image_to_base64(IMAGE_DIR / 'sales_icon.png')}"
+             style="width:72px; height:72px; object-fit:contain;">
+        <h1 style="margin:0; padding:0;">Sales Analytics</h1>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
+
 st.caption("Analyze revenue trends, category performance, top-selling SKUs, and customer demand.")
 
 st.sidebar.header("Sales Filters")
@@ -104,16 +117,16 @@ avg_order_value = total_revenue / total_orders if total_orders else 0
 kpi1, kpi2, kpi3, kpi4 = st.columns(4)
 
 with kpi1:
-    metric_card("Revenue", f"${total_revenue:,.0f}", "")
+    metric_card("Revenue", f"${total_revenue:,.0f}")
 
 with kpi2:
-    metric_card("Orders", f"{total_orders:,}", "")
+    metric_card("Orders", f"{total_orders:,}")
 
 with kpi3:
-    metric_card("Units Sold", f"{units_sold:,.0f}", "")
+    metric_card("Units Sold", f"{units_sold:,.0f}")
 
 with kpi4:
-    metric_card("Avg Order Value", f"${avg_order_value:,.2f}", "")
+    metric_card("Avg Order Value", f"${avg_order_value:,.2f}")
 
 st.divider()
 

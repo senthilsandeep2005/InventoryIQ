@@ -1,5 +1,6 @@
 from pathlib import Path
 import streamlit as st
+st.write("Secrets loaded:", list(st.secrets.keys()))
 from utils.style_loader import load_css
 
 

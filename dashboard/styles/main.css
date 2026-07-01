@@ -156,7 +156,3 @@ li[role="option"]:hover {
 #MainMenu {
     visibility: hidden !important;
 }
-
-header {
-    visibility: hidden !important;
-}

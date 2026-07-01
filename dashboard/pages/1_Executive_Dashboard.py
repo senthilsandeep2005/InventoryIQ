@@ -1,27 +1,29 @@
 import sys
 from pathlib import Path
+import base64
 
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 
 import pandas as pd
 import streamlit as st
 import plotly.express as px
-import base64
-
 
 from utils.athena_client import run_sql_file
 from utils.style_loader import load_css
 from utils.data_loader import load_data
+
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 IMAGE_DIR = PROJECT_ROOT / "images"
+
 
 def image_to_base64(image_path):
     with open(image_path, "rb") as image_file:
         return base64.b64encode(image_file.read()).decode()
 
+
 st.set_page_config(
     page_title="InventoryIQ Dashboard",
-    page_icon="📦",
+    page_icon=str(IMAGE_DIR / "executive_dashboard_icon.png"),
     layout="wide"
 )
 
@@ -33,7 +35,6 @@ st.markdown("<div style='height: 24px;'></div>", unsafe_allow_html=True)
 
 inventory, suppliers, sales, transactions, purchase_orders = load_data()
 
-# Clean numeric fields used by local table logic
 numeric_inventory_columns = [
     "stock_level",
     "reorder_point",
@@ -54,7 +55,7 @@ if "event_type" in transactions.columns:
     transactions["transaction_type"] = transactions["event_type"]
 
 
-def metric_card(label, value, icon):
+def metric_card(label, value):
     st.markdown(
         f"""
         <div class="metric-card">
@@ -73,6 +74,7 @@ def format_number(value):
 def format_currency(value):
     return f"${float(value):,.0f}"
 
+
 st.markdown(
     f"""
     <div style="display:flex; align-items:center; gap:18px; margin-bottom:12px;">
@@ -83,9 +85,9 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
+
 st.caption("Intelligent Inventory Optimization Platform | Python + AWS S3 + Athena + Streamlit")
 
-# KPI cards powered directly by Athena SQL
 kpi_df = run_sql_file("executive_kpis_athena.sql")
 
 total_skus = int(float(kpi_df.loc[0, "total_skus"]))
@@ -97,19 +99,19 @@ total_reorder_qty = float(kpi_df.loc[0, "total_reorder_quantity"])
 kpi1, kpi2, kpi3, kpi4, kpi5 = st.columns(5)
 
 with kpi1:
-    metric_card("Total SKUs", f"{total_skus:,}", "")
+    metric_card("Total SKUs", f"{total_skus:,}")
 
 with kpi2:
-    metric_card("Inventory Value", format_currency(total_inventory_value), "")
+    metric_card("Inventory Value", format_currency(total_inventory_value))
 
 with kpi3:
-    metric_card("Avg Health Score", f"{avg_health_score:.3f}", "")
+    metric_card("Avg Health Score", f"{avg_health_score:.3f}")
 
 with kpi4:
-    metric_card("High Risk SKUs", f"{high_risk_skus:,}", "")
+    metric_card("High Risk SKUs", f"{high_risk_skus:,}")
 
 with kpi5:
-    metric_card("Reorder Qty", format_number(total_reorder_qty), "")
+    metric_card("Reorder Qty", format_number(total_reorder_qty))
 
 st.divider()
 
@@ -195,12 +197,16 @@ with right:
 
 st.divider()
 
-st.subheader("High Risk SKUs")
+# High Risk SKU table
+st.subheader("High Risk SKUs — Top 25 by Reorder Quantity")
+st.caption(
+    f"Showing the 25 most urgent high-risk SKUs out of {high_risk_skus:,} total high-risk SKUs."
+)
 
 high_risk_table = (
     inventory[inventory["stockout_risk"] == "High"]
-    .sort_values("reorder_quantity", ascending=False)
-    .head(10)
+    .sort_values(["reorder_quantity", "stock_level"], ascending=[False, True])
+    .head(25)
 )
 
 st.dataframe(
@@ -216,22 +222,41 @@ st.dataframe(
         ]
     ].reset_index(drop=True),
     use_container_width=True,
-    hide_index=True
+    hide_index=True,
+    height=420
 )
 
-st.subheader("Reorder Priority Recommendations")
+# Reorder recommendation table
+st.subheader("Reorder Priority Recommendations — Top 25")
+st.caption(
+    "Priority score ranks SKUs by reorder need, stockout risk, and inventory exposure."
+)
 
 reorder_table = inventory[inventory["reorder_quantity"] > 0].copy()
 
+risk_weight_map = {
+    "High": 3,
+    "Medium": 2,
+    "Low": 1
+}
+
+reorder_table["risk_weight"] = reorder_table["stockout_risk"].map(risk_weight_map).fillna(1)
+
+reorder_table["shortage_gap"] = (
+    reorder_table["reorder_point"] - reorder_table["stock_level"]
+).clip(lower=0)
+
 reorder_table["priority_score"] = (
-    reorder_table["inventory_value"]
-    * reorder_table["reorder_quantity"]
+    reorder_table["reorder_quantity"] * 100
+    + reorder_table["shortage_gap"] * 50
+    + reorder_table["risk_weight"] * 1000
+    + reorder_table["inventory_value"] * 0.01
 )
 
 reorder_table = (
     reorder_table
     .sort_values("priority_score", ascending=False)
-    .head(10)
+    .head(25)
 )
 
 st.dataframe(
@@ -241,6 +266,7 @@ st.dataframe(
             "category",
             "stock_level",
             "reorder_point",
+            "shortage_gap",
             "reorder_quantity",
             "inventory_value",
             "priority_score",
@@ -249,5 +275,6 @@ st.dataframe(
         ]
     ].reset_index(drop=True),
     use_container_width=True,
-    hide_index=True
+    hide_index=True,
+    height=420
 )

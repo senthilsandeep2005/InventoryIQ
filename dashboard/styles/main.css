@@ -142,3 +142,21 @@ li[role="option"]:hover {
     font-weight: 600;
     color: #0f172a;
 }
+/* Hide Streamlit hosted app toolbar */
+[data-testid="stToolbar"] {
+    visibility: hidden !important;
+    height: 0 !important;
+    position: fixed !important;
+}
+
+[data-testid="stDecoration"] {
+    display: none !important;
+}
+
+#MainMenu {
+    visibility: hidden !important;
+}
+
+header {
+    visibility: hidden !important;
+}
